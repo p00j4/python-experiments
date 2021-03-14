@@ -57,34 +57,74 @@ Questions:
 
 ### LLD
 
-class ADB:
-  def __init__(self):
-    self.adb_base_cmd = "adb logcat"
-    
-  @property
-  def network(self):
-    ADB_NETWORK_CAPTURE_COMMAND = self.adb_base_cmd + ""
-    """
-    Some filtering logic on the command
-    """
-    return ADB_NETWORK_CAPTURE_COMMAND
+import subprocess
+import threading
+from concurrent.futures import ThreadPoolExecutor #python 3 for multithreading
+
+import Enum
+class ADB(Enum):
+    BASE = "adb logcat"
+    NETWORK_CAPTURE =  ABD_BASE + " | grep netst"
+    RAM_CAPTURE =  ABD_BASE + " | grep MB"
+    BATTERY_CAPTURE =  ABD_BASE + " | grep battery" ### assuming the right commands will be placed from ADB cheatsheet
+    APP_OPENED =  ABD_BASE + " | grep APP_OPENED" ### assuming the right commands will be placed from ADB cheatsheet
+    PAGE_LOADED =  ABD_BASE + " | grep PAGE_LOADED" ### assuming the right commands will be placed 
+   
   
-  @property
-  def ram(self):
-    ADB_RAM_CAPTURE_COMMAND = self.adb_base_cmd + ""
-    return ADB_RAM_CAPTURE_COMMAND
+class Capturer:
   
-  @property
-  def battery(self):
-    ADB_RAM_CAPTURE_COMMAND = self.adb_base_cmd + ""
-    return ADB_RAM_CAPTURE_COMMAND
-    
-    @property
-    def app_opened()
+    def __init__(self):
+      self.sh = ShellHelper()
+
+    def capture_metrics(self): 
+        """
+        This function can be called by multiple instances (multiple devices connected to the same host and we got to gather metrics from each of them)
+        1. From one device multiple ADB commands will be hit
+        2. From multiple devices, first step will happen
+        And we want to process them all in parallel
+        Eg.    c1 = Capturer()
+               c1.capture_metrics()
+               
+               c2 = Capturer()
+               c2.capture_metrics()
+               
+        """
+        with ThreadPoolExecutor(max_workers=10) as executor:        #executes commands in parallel
+            commands = [ADB.NETWORK_CAPTURE, ADB.RAM_CAPTURE, ADB.BATTERY_CAPTURE]
+            results = executor.map(sh.execute, commands)            #this should trigger all cmds in parallel
+            for f in concurrent.futures.as_completed(results):
+               metricts = f.result()
+             """
+             Call the publisher  (Store/Publish the metrics to storage [Kafka/mongo])
+             """
+            
+            
+      
+  
+  
+class Analyser:
+  
+  
 
 
+############### HELPER CLASSES ############
+class ShellHelper:
+    def __init__(self, command):
+      self.command = command
+      
+    def execute(self):
+        try:
+           result = subprocess.check_output(self.command)
+           return {command: result}
+        except:
+          print("Error while executing command")
+  
 
-
+class Publisher:
+  """ 
+  Takes in the message and publishes to storage where analyser is running to compute all metrics together 
+  """
+  pass
 
 
 
