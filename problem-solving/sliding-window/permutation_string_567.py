@@ -6,18 +6,26 @@ class Solution(object):
         :type s2: str
         :rtype: bool
         """
+        """
+        Intution - only small case letters? best to do with 26 char map other wise with dictionary
+        slide from left, slide from right
+        since it's contiguous characetrs so whole window will slide together so pre load and then remove one from left and add 1 from right into the map
+        """
+        
+        
         n1 = len(s1)
         n2 = len(s2)
         
         if not s1 or not s2 or n1 > n2:
             return False
-        
         s1_ls = [0]*26
         s2_ls = [0]*26
         a = ord('a')
+        
+        #pre load till s1 length items
         for i, c in enumerate(s1):
             s1_ls[ord(c) - a] += 1
-            s2_ls[ord(s2[i]) - a] += 1 #pre load till s1 length items
+            s2_ls[ord(s2[i]) - a] += 1
         
         left = 0
         for right in range(n1, n2) :
@@ -29,7 +37,32 @@ class Solution(object):
             left += 1
              
         return s1_ls == s2_ls
-         
+        
+        
+        ### Soulution 1
+        n_s1 = len(s1)
+        n_s2 = len(s2)
+        window_desired = Counter(s1)
+        window_cur = Counter(s2[:n_s1])
+
+        left = 0
+        right = n_s1
+        if window_cur == window_desired:
+            return True
+        for right in range(n_s1, n_s2): #right movement is controlled here
+            #Slide from left - remove left 
+            window_cur[s2[left]] -= 1
+            if window_cur[s2[left]] == 0:
+                del window_cur[s2[left]]
+            left += 1
+
+            #Slide to right 
+            window_cur[s2[right]] = window_cur.get(s2[right], 0) + 1
+
+            if window_cur == window_desired:
+                print("found at {}-{}".format(left, right))
+                return True
+                
         #Solution 2
         left = 0
         s_dict = Counter(s1)
