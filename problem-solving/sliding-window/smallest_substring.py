@@ -56,4 +56,32 @@ class Solution(object):
             # if not f1 or not f2:
             #     break
         return result
+    
+    
+    
+    #SOLUTION 2
+    
+    import collections
+    def minWindow(s, t):
+        need = collections.Counter(t)            #hash table to store char frequency
+        missing = len(t)                         #total number of chars we care
+        start, end = 0, 0
+        left = 0
+        for right, char in enumerate(s, 1):       #index right from 1
+            if need[char] > 0:
+                missing -= 1                      #1 less missing
+            need[char] -= 1                       #adding with negative when not found (reduces efforts of deleting the key)
+            if missing == 0:                      #match all chars
+                while left < right and need[s[left]] < 0:  #move from left to right for the left which is positive in the hash
+                    need[s[left]] += 1            #rebuild the need hash 
+                    left += 1                       
+                need[s[left]] += 1                #make sure the first appearing char satisfies need[char]>0
+                missing += 1                      #we missed this first char, so add missing by 1
+                if end == 0 or right-left < end-start:  #update window if smaller than before
+                    start, end = left, right
+                left += 1                           #update left to start+1 for next window
+        return s[start:end]
+
+    
+
         
